@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: d5d3e298e372fed448ed15b52a774cf0
+timeCreated: 1502542082
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - goblinCount: {instanceID: 0}
+  - goblinAvatar: {instanceID: 0}
+  - goblinCountDisplay: {instanceID: 0}
+  - formationsPanel: {instanceID: 0}
+  - columnFormation: {instanceID: 0}
+  - rowFormation: {instanceID: 0}
+  - wedgeFormation: {instanceID: 0}
+  - columnFormationActive: {instanceID: 0}
+  - rowFormationActive: {instanceID: 0}
+  - wedgeFormationActive: {instanceID: 0}
+  - columnFormationInactive: {instanceID: 0}
+  - rowFormationInactive: {instanceID: 0}
+  - wedgeFormationInactive: {instanceID: 0}
+  - rotationWheel: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

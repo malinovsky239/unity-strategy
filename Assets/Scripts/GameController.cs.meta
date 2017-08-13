@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 890c538c4ba1487439e17569277eb0d6
+timeCreated: 1502285293
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - _goblinPrefab: {instanceID: 0}
+  - _skeletonPrefab: {instanceID: 0}
+  - _camera: {instanceID: 0}
+  - CursorTexture: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
