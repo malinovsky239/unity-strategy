@@ -18,13 +18,13 @@ public class UIController : MonoBehaviour
     [SerializeField] private Sprite wedgeFormationInactive;
     [SerializeField] private GameObject rotationWheel;
     private bool _UIActive;
-    
-    void Start ()
+
+    void Start()
     {
         _UIActive = false;
         rotationWheel.SetActive(false);
         ChangeUnitCount(0);
-	    DeactiveFormationPanel();
+        DeactiveFormationPanel();
     }
 
     public void ChangeUnitCount(int newCount)
@@ -54,43 +54,43 @@ public class UIController : MonoBehaviour
     }
 
     void Awake()
-    {        
+    {
         Messenger<int>.AddListener("CntChanged", ChangeUnitCount);
         Messenger.AddListener("SwitchRotationWheelState", SwitchRotationWheelState);
     }
 
     void OnDestroy()
     {
-        Messenger.RemoveListener("SwitchRotationWheelState", SwitchRotationWheelState);        
+        Messenger.RemoveListener("SwitchRotationWheelState", SwitchRotationWheelState);
     }
 
     private void SwitchRotationWheelState()
     {
         rotationWheel.SetActive(!rotationWheel.activeSelf);
     }
-	
-	void Update ()
-	{
-	    if (_UIActive)
-	    {
-	        if (Input.GetKey(KeyCode.Alpha1))
-	        {
-	            DeactiveFormationPanel();
-	            columnFormation.GetComponent<Image>().sprite = columnFormationActive;
+
+    void Update()
+    {
+        if (_UIActive)
+        {
+            if (Input.GetKey(KeyCode.Alpha1))
+            {
+                DeactiveFormationPanel();
+                columnFormation.GetComponent<Image>().sprite = columnFormationActive;
                 Messenger<int>.Broadcast("FormationChanged", 1);
-	        }
-	        if (Input.GetKey(KeyCode.Alpha2))
-	        {
-	            DeactiveFormationPanel();
-	            rowFormation.GetComponent<Image>().sprite = rowFormationActive;
+            }
+            if (Input.GetKey(KeyCode.Alpha2))
+            {
+                DeactiveFormationPanel();
+                rowFormation.GetComponent<Image>().sprite = rowFormationActive;
                 Messenger<int>.Broadcast("FormationChanged", 2);
             }
-	        if (Input.GetKey(KeyCode.Alpha3))
-	        {
-	            DeactiveFormationPanel();
-	            wedgeFormation.GetComponent<Image>().sprite = wedgeFormationActive;
+            if (Input.GetKey(KeyCode.Alpha3))
+            {
+                DeactiveFormationPanel();
+                wedgeFormation.GetComponent<Image>().sprite = wedgeFormationActive;
                 Messenger<int>.Broadcast("FormationChanged", 3);
             }
-        }        
-	}
+        }
+    }
 }

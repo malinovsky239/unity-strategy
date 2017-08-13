@@ -2,8 +2,8 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class HealthPointsBar : MonoBehaviour {
-
+public class HealthPointsBar : MonoBehaviour
+{
     [SerializeField] public Camera Camera;
     private readonly Vector2 _healthBarSize = new Vector2(50, 8);
     private readonly float _unitHeight = 3;
@@ -43,8 +43,8 @@ public class HealthPointsBar : MonoBehaviour {
     }
 
     public IEnumerator Die()
-    {        
-        _selectionController.Remove(this.gameObject);                
+    {
+        _selectionController.Remove(this.gameObject);
         GetComponent<Animator>().SetBool("Alive", false);
         GetComponent<NavMeshAgent>().isStopped = true;
         GetComponentInChildren<FieldOfView>().Die();

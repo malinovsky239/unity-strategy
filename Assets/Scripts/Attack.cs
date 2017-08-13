@@ -7,7 +7,7 @@ public class Attack : MonoBehaviour
     [SerializeField] private int Damage = 10;
 
     public IEnumerator BringDamage(GameObject prey, float waitingTime = 1f)
-    {        
+    {
         yield return new WaitForSeconds(waitingTime);
         prey.GetComponent<HealthPointsBar>().HealthPoints -= Damage;
         IsAttacking = false;

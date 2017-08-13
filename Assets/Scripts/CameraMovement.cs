@@ -2,7 +2,7 @@
 
 public class CameraMovement : MonoBehaviour
 {
-    private float _speed = 10.0f;     
+    private float _speed = 10.0f;
     private Vector3 _transition;
     private Vector3 _rotation;
     private uint _step;
@@ -20,42 +20,43 @@ public class CameraMovement : MonoBehaviour
     public CameraState State;
     private bool _transitionToFP;
 
-	void Start () {
-		State = CameraState.Strategic;	    
-	}
-		
-	void Update ()
-	{
-	    if (State == CameraState.Strategic)
-	    {
-	        float deltaX = Input.GetAxis("Horizontal");
-	        float deltaZ = Input.GetAxis("Vertical");
-	        Vector3 forward = transform.forward;
-	        forward.y = 0;
-	        Vector3 cameraMovement = (forward.normalized * deltaZ + transform.right * deltaX) * _speed * Time.deltaTime;
-	        transform.Translate(cameraMovement, Space.World);
-	    }
-	    if (State == CameraState.Transition)
-	    {            
+    void Start()
+    {
+        State = CameraState.Strategic;
+    }
+
+    void Update()
+    {
+        if (State == CameraState.Strategic)
+        {
+            float deltaX = Input.GetAxis("Horizontal");
+            float deltaZ = Input.GetAxis("Vertical");
+            Vector3 forward = transform.forward;
+            forward.y = 0;
+            Vector3 cameraMovement = (forward.normalized * deltaZ + transform.right * deltaX) * _speed * Time.deltaTime;
+            transform.Translate(cameraMovement, Space.World);
+        }
+        if (State == CameraState.Transition)
+        {
             transform.Translate(_transition, Space.World);
-	        transform.eulerAngles += _rotation;
-	        _step++;
-	        if (_step == StepsCount)
-	        {
-	            if (_transitionToFP)
-	            {
-	                State = CameraState.FirstPerson;
-	                _enterRotation = transform.eulerAngles;
+            transform.eulerAngles += _rotation;
+            _step++;
+            if (_step == StepsCount)
+            {
+                if (_transitionToFP)
+                {
+                    State = CameraState.FirstPerson;
+                    _enterRotation = transform.eulerAngles;
                     GetComponent<MouseLook>().enabled = true;
-	                transform.parent = _attachedGameObject.transform;
-	            }
-	            else
-	            {
-	                State = CameraState.Strategic;
-	            }
-	        }
-	    }
-	}
+                    transform.parent = _attachedGameObject.transform;
+                }
+                else
+                {
+                    State = CameraState.Strategic;
+                }
+            }
+        }
+    }
 
     public void SwitchToFP(GameObject gameObj, Transform to)
     {
@@ -84,6 +85,6 @@ public class CameraMovement : MonoBehaviour
         State = CameraState.Transition;
         _transition = -_transition;
         _rotation = -_rotation;
-        _transitionToFP = false;        
+        _transitionToFP = false;
     }
 }

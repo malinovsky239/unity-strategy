@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
-public class MouseLook : MonoBehaviour {
-
+public class MouseLook : MonoBehaviour
+{
     private float _rotationX;
     private float _rotationY;
 
@@ -18,12 +18,12 @@ public class MouseLook : MonoBehaviour {
     }
 
     public RotationType RotationDir;
-	
-	void Update ()
-	{
-	    switch (RotationDir)
-	    {
-	        case RotationType.Horizontal:
+
+    void Update()
+    {
+        switch (RotationDir)
+        {
+            case RotationType.Horizontal:
                 _rotationY += Input.GetAxis("Mouse X") * SensitivityHor;
                 break;
 
@@ -31,13 +31,13 @@ public class MouseLook : MonoBehaviour {
                 _rotationX -= Input.GetAxis("Mouse Y") * SensitivityVer;
                 _rotationX = Mathf.Clamp(_rotationX, MinAngle, MaxAngle);
                 break;
-                
+
             case RotationType.Both:
                 _rotationY += Input.GetAxis("Mouse X") * SensitivityHor;
                 _rotationX -= Input.GetAxis("Mouse Y") * SensitivityVer;
                 _rotationX = Mathf.Clamp(_rotationX, MinAngle, MaxAngle);
                 break;
         }
-        transform.eulerAngles = new Vector3(_rotationX, _rotationY, 0);     
-	}
+        transform.eulerAngles = new Vector3(_rotationX, _rotationY, 0);
+    }
 }

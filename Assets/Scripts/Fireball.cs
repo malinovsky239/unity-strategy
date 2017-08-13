@@ -1,23 +1,23 @@
 ﻿using UnityEngine;
 
 public class Fireball : MonoBehaviour
-{   
+{
     private float _speed = 10.0f;
     private const float ExplodingDistance = 1f;
     private const int Damage = 30;
-    public GameObject Creator;   
+    public GameObject Creator;
 
-	void Update ()
-	{	    
-        transform.Translate(transform.forward * _speed * Time.deltaTime, Space.World);	    
-	}
+    void Update()
+    {
+        transform.Translate(transform.forward * _speed * Time.deltaTime, Space.World);
+    }
 
     void OnTriggerEnter(Collider other)
     {
         if (other.gameObject != Creator)
         {
             foreach (GameObject gameObj in GameObject.FindGameObjectsWithTag("player"))
-            {                
+            {
                 if (Utils.HeightIgnoringDistance(gameObj.transform.position, transform.position) < ExplodingDistance)
                 {
                     gameObj.GetComponent<HealthPointsBar>().HealthPoints -= Damage;

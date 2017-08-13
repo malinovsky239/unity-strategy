@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
-public static class Utils {
-
+public static class Utils
+{
     static Texture2D _whiteTexture;
     public static Texture2D WhiteTexture
     {
@@ -22,14 +22,14 @@ public static class Utils {
     {
         GUI.color = color;
         GUI.DrawTexture(rect, WhiteTexture);
-        GUI.color = Color.white;        
+        GUI.color = Color.white;
     }
 
     public static void DrawScreenRectBorder(Rect rect, float thickness, Color color)
-    {        
-        DrawScreenRect(new Rect(rect.xMin, rect.yMin, rect.width, thickness), color);        
-        DrawScreenRect(new Rect(rect.xMin, rect.yMin, thickness, rect.height), color);        
-        DrawScreenRect(new Rect(rect.xMax - thickness, rect.yMin, thickness, rect.height), color);        
+    {
+        DrawScreenRect(new Rect(rect.xMin, rect.yMin, rect.width, thickness), color);
+        DrawScreenRect(new Rect(rect.xMin, rect.yMin, thickness, rect.height), color);
+        DrawScreenRect(new Rect(rect.xMax - thickness, rect.yMin, thickness, rect.height), color);
         DrawScreenRect(new Rect(rect.xMin, rect.yMax - thickness, rect.width, thickness), color);
     }
 

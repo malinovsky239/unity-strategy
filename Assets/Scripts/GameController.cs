@@ -13,21 +13,21 @@ public class GameController : MonoBehaviour
     [SerializeField] public Texture2D CursorTexture;
     public static List<GameObject> WorldUnits;
 
-    void Start ()
+    void Start()
     {
-        CursorTexture = Resources.Load("Sword") as Texture2D;        
+        CursorTexture = Resources.Load("Sword") as Texture2D;
         Cursor.SetCursor(CursorTexture, new Vector2(CursorTexture.width * 0.8f, CursorTexture.height * 0.6f),
             CursorMode.Auto);
-        
+
         WorldUnits = new List<GameObject>();
         for (var i = 0; i < GoblinsCount; i++)
-	    {
-            CreateUnit(_goblinPrefab, "player", new Rect(-60, -5, 10, 10));            
-	    }
+        {
+            CreateUnit(_goblinPrefab, "player", new Rect(-60, -5, 10, 10));
+        }
 
         for (var i = 0; i < SkeletonsCount; i++)
         {
-            CreateUnit(_skeletonPrefab, "enemy", new Rect(60, 10, 20, 20));            
+            CreateUnit(_skeletonPrefab, "enemy", new Rect(60, 10, 20, 20));
         }
     }
 

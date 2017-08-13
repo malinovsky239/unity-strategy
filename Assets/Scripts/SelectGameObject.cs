@@ -5,7 +5,7 @@ public class SelectGameObject : MonoBehaviour
     private Camera _camera;
     private CameraMovement _cameraMovement;
     private SelectionController _selectionController;
-    private GameObject _destinationFlag;    
+    private GameObject _destinationFlag;
     [SerializeField] private GameObject _flag;
     private bool _isSelecting;
     private Vector3 _selectionRectCorner;
@@ -21,89 +21,90 @@ public class SelectGameObject : MonoBehaviour
 
     private Mode _mode;
 
-    void Start ()
+    void Start()
     {
         _mode = Mode.Normal;
-	    _camera = GetComponent<Camera>();
-	    _cameraMovement = GetComponent<CameraMovement>();
-	    _selectionController = GetComponent<SelectionController>();	            
-	}    
-		
-	void Update ()
-	{
-	    ZoomCamera();
+        _camera = GetComponent<Camera>();
+        _cameraMovement = GetComponent<CameraMovement>();
+        _selectionController = GetComponent<SelectionController>();
+    }
+
+    void Update()
+    {
+        ZoomCamera();
 
         if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKey(KeyCode.RightAlt))
-	    {            
+        {
             _cameraMovement.SwitchToStrategic();
-        }        
+        }
 
         if (Input.GetMouseButtonDown(0))
-	    {	        	        
-	        RaycastHit hit;
-	        Vector3 clickPoint = Input.mousePosition;
-	        if (Physics.Raycast(_camera.ScreenPointToRay(clickPoint), out hit))
-	        {
-	            GameObject hitGameObject = hit.transform.gameObject;
-	            SelectableUnit target = hitGameObject.GetComponent<SelectableUnit>();
+        {
+            RaycastHit hit;
+            Vector3 clickPoint = Input.mousePosition;
+            if (Physics.Raycast(_camera.ScreenPointToRay(clickPoint), out hit))
+            {
+                GameObject hitGameObject = hit.transform.gameObject;
+                SelectableUnit target = hitGameObject.GetComponent<SelectableUnit>();
                 if (target)
-                {                    
+                {
                     bool isAltPressed = Input.GetKey(KeyCode.LeftAlt);
 
                     if (isAltPressed)
-                    {         
+                    {
                         _cameraMovement.SwitchToFP(hitGameObject, target.transform);
                     }
                     else
                     {
                         SelectUnit(hitGameObject);
-                    }                    	                
-	            }
-	            else
+                    }
+                }
+                else
                 {
                     _isSelecting = true;
-                    _selectionRectCorner = Input.mousePosition;	                
-                }                
-	        }
-	    }
-
-        if (Input.GetMouseButtonUp(0))
-	    {
-	        if (_isSelecting)
-	        {
-	            SelectMultipleUnits();                
+                    _selectionRectCorner = Input.mousePosition;
+                }
             }
         }
 
-	    if (Input.GetKeyDown(KeyCode.Space))
-	    {            
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (_isSelecting)
+            {
+                SelectMultipleUnits();
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
             Cursor.lockState = CursorLockMode.Locked;
             Messenger.Broadcast("SwitchRotationWheelState");
             _mode = Mode.CameraRotation;
-	    }
-	    
+        }
+
         if (Input.GetKeyUp(KeyCode.Space))
-	    {            
+        {
             Cursor.lockState = CursorLockMode.None;
             Messenger.Broadcast("SwitchRotationWheelState");
             _mode = Mode.Normal;
         }
 
         if (Input.GetMouseButton(1))
-	    {
-	        if (_mode == Mode.CameraRotation)
-	        {
-	            RotateCamera();
-	        }
-	    }
-
-        if (Input.GetMouseButtonDown(1))
-	    {
-            if (_mode == Mode.Normal && _selectionController.CurrentSelection.Count > 0) {
-	            PutDestinationFlag();
+        {
+            if (_mode == Mode.CameraRotation)
+            {
+                RotateCamera();
             }
         }
-	}
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (_mode == Mode.Normal && _selectionController.CurrentSelection.Count > 0)
+            {
+                PutDestinationFlag();
+            }
+        }
+    }
 
     private void ZoomCamera()
     {
@@ -139,7 +140,7 @@ public class SelectGameObject : MonoBehaviour
         _selectionController.Clear();
         _isSelecting = false;
 
-        Vector3 selectionRectOppositeCorner = Input.mousePosition;        
+        Vector3 selectionRectOppositeCorner = Input.mousePosition;
 
         RaycastHit hit;
         Vector3 cornerWorldInit = new Vector3(), cornerWorldOpposite = new Vector3();
@@ -192,9 +193,9 @@ public class SelectGameObject : MonoBehaviour
     }
 
     void OnGUI()
-    {        
+    {
         if (_isSelecting)
-        {            
+        {
             var rect = Utils.GetScreenRect(_selectionRectCorner, Input.mousePosition);
             Utils.DrawScreenRect(rect, new Color(0.8f, 0.8f, 0.95f, 0.25f));
             Utils.DrawScreenRectBorder(rect, 2, new Color(0.8f, 0.8f, 0.95f));
