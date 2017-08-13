@@ -1,4 +1,4 @@
-This demo project features various elements of a real-time strategy.
+This demo project presents various elements of a real-time strategy. I created it to experiment with various Unity features.
 
 You can watch demo video [here](https://youtu.be/JppXaf6VvQA). In addition to gameplay, this video contains short explanation of the algorithm behind units' formation change.
 
