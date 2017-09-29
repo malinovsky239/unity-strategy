@@ -1,19 +1,22 @@
 ﻿using UnityEngine;
 
-public class SelectableUnit : MonoBehaviour
+namespace Assets.Scripts
 {
-    private GameObject _selectionIndicator;
-    [SerializeField] private GameObject _selectionIndicatorPrefab;
-
-    public void Select()
+    public class SelectableUnit : MonoBehaviour
     {
-        _selectionIndicator = Instantiate(_selectionIndicatorPrefab) as GameObject;
-        _selectionIndicator.transform.position = transform.position + Vector3.up * 0.01f;
-        _selectionIndicator.transform.parent = this.transform;
-    }
+        private GameObject _selectionIndicator;
+        [SerializeField] private GameObject _selectionIndicatorPrefab;
 
-    public void RemoveSelection()
-    {
-        Destroy(_selectionIndicator.gameObject);
+        public void Select()
+        {
+            _selectionIndicator = Instantiate(_selectionIndicatorPrefab) as GameObject;
+            _selectionIndicator.transform.position = transform.position + Vector3.up * 0.01f;
+            _selectionIndicator.transform.parent = this.transform;
+        }
+
+        public void RemoveSelection()
+        {
+            Destroy(_selectionIndicator.gameObject);
+        }
     }
 }

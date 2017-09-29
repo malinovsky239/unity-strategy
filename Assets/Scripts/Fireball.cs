@@ -1,29 +1,32 @@
 ﻿using UnityEngine;
 
-public class Fireball : MonoBehaviour
+namespace Assets.Scripts
 {
-    private float _speed = 10.0f;
-    private const float ExplodingDistance = 1f;
-    private const int Damage = 30;
-    public GameObject Creator;
-
-    void Update()
+    public class Fireball : MonoBehaviour
     {
-        transform.Translate(transform.forward * _speed * Time.deltaTime, Space.World);
-    }
+        private float _speed = 10.0f;
+        private const float ExplodingDistance = 1f;
+        private const int Damage = 30;
+        public GameObject Creator;
 
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject != Creator)
+        private void Update()
         {
-            foreach (GameObject gameObj in GameObject.FindGameObjectsWithTag("player"))
+            transform.Translate(transform.forward * _speed * Time.deltaTime, Space.World);
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.gameObject != Creator)
             {
-                if (Utils.HeightIgnoringDistance(gameObj.transform.position, transform.position) < ExplodingDistance)
+                foreach (GameObject gameObj in GameObject.FindGameObjectsWithTag(Constants.Tags.Player))
                 {
-                    gameObj.GetComponent<HealthPointsBar>().HealthPoints -= Damage;
+                    if (Utils.HeightIgnoringDistance(gameObj.transform.position, transform.position) < ExplodingDistance)
+                    {
+                        gameObj.GetComponent<HealthPointsBar>().HealthPoints -= Damage;
+                    }
                 }
+                Destroy(gameObject);
             }
-            Destroy(gameObject);
         }
     }
 }

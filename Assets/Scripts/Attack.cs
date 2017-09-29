@@ -1,15 +1,18 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class Attack : MonoBehaviour
+namespace Assets.Scripts
 {
-    public bool IsAttacking;
-    [SerializeField] private int Damage = 10;
-
-    public IEnumerator BringDamage(GameObject prey, float waitingTime = 1f)
+    public class Attack : MonoBehaviour
     {
-        yield return new WaitForSeconds(waitingTime);
-        prey.GetComponent<HealthPointsBar>().HealthPoints -= Damage;
-        IsAttacking = false;
+        public bool IsAttacking;
+        [SerializeField] private int Damage = 10;
+
+        public IEnumerator BringDamage(GameObject prey, float waitingTime = 1f)
+        {
+            yield return new WaitForSeconds(waitingTime);
+            prey.GetComponent<HealthPointsBar>().HealthPoints -= Damage;
+            IsAttacking = false;
+        }
     }
 }
