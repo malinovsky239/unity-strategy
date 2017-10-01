@@ -7,20 +7,20 @@ namespace Assets.Scripts
     {
         private NavMeshAgent _agent;
         private FieldOfView _fieldOfView;
-        private GameObject _prey;
         private Animator _animator;
         private HealthPointsBar _hp;
-        private const float AttackingRange = 3f;
-        private const float ScaleFactor = 15;
+        private GameObject _prey;
         private Attack _attack;
-        private bool _alive = true;
+
+        private const float AttackingRange = 3f;
+        private const float AgentRadius = 1f / 30;
 
         private void Start()
         {
             _agent = gameObject.AddComponent<NavMeshAgent>();
-            _agent.radius = 0.5f / ScaleFactor;
+            _agent.radius = AgentRadius;
             _agent.stoppingDistance = AttackingRange / 2;
-            _agent.speed = 2f;
+            _agent.speed = Constants.Speed.Walk;
 
             _animator = GetComponent<Animator>();
             _fieldOfView = GetComponentInChildren<FieldOfView>();
@@ -30,31 +30,26 @@ namespace Assets.Scripts
 
         private void Update()
         {
-            if (!_alive)
-            {
-                return;
-            }
             if (_hp.HealthPoints <= 0)
             {
-                _alive = false;
                 return;
             }
 
             _prey = null;
-            foreach (GameObject gameObj in GameObject.FindGameObjectsWithTag(Constants.Tags.Player))
+            foreach (GameObject potentialPrey in GameObject.FindGameObjectsWithTag(Constants.Tags.Player))
             {
-                if (gameObj.GetComponent<HealthPointsBar>().HealthPoints > 0 && _fieldOfView.IsInField(gameObj.transform.position))
+                if (potentialPrey.GetComponent<HealthPointsBar>().HealthPoints > 0 && _fieldOfView.IsInField(potentialPrey.transform.position))
                 {
-                    if (!_prey || Utils.SqrDistance(this.gameObject, gameObj) < Utils.SqrDistance(this.gameObject.gameObject, _prey))
+                    if (!_prey || Utils.SqrDistance(gameObject, potentialPrey) < Utils.SqrDistance(gameObject, _prey))
                     {
-                        _prey = gameObj;
+                        _prey = potentialPrey;
                     }
                 }
             }
-            if (_prey)
+            if (_prey != null)
             {
                 _animator.SetBool(Constants.AnimatorParameters.EnemyWithinFieldOfView, true);
-                if (Utils.SqrDistance(this.gameObject, _prey) < AttackingRange)
+                if (Utils.SqrDistance(gameObject, _prey) < AttackingRange)
                 {
                     _animator.SetBool(Constants.AnimatorParameters.EnemyWithinAttackingRange, true);
                     if (!_attack.IsAttacking)

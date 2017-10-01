@@ -4,14 +4,6 @@ namespace Assets.Scripts
 {
     public class CameraMovement : MonoBehaviour
     {
-        private float _speed = 10.0f;
-        private Vector3 _transition;
-        private Vector3 _rotation;
-        private uint _step;
-        private const uint StepsCount = 100;
-        private GameObject _attachedGameObject;
-        private Vector3 _enterRotation;
-
         public enum CameraState
         {
             Strategic,
@@ -21,6 +13,15 @@ namespace Assets.Scripts
 
         public CameraState State;
         private bool _transitionToFP;
+
+        private const float Speed = 10.0f;
+        private const uint StepsCount = 100;
+        private uint _step;
+        private Vector3 _translationStep;
+        private Vector3 _rotationStep;
+
+        private GameObject _attachedGameObject;
+        private Vector3 _rotationOnFirstPersonStateEntrance;
 
         private void Start()
         {
@@ -35,20 +36,20 @@ namespace Assets.Scripts
                 float deltaZ = Input.GetAxis(Constants.Axes.Vertical);
                 Vector3 forward = transform.forward;
                 forward.y = 0;
-                Vector3 cameraMovement = (forward.normalized * deltaZ + transform.right * deltaX) * _speed * Time.deltaTime;
+                Vector3 cameraMovement = (forward.normalized * deltaZ + transform.right * deltaX) * Speed * Time.deltaTime;
                 transform.Translate(cameraMovement, Space.World);
             }
             if (State == CameraState.Transition)
             {
-                transform.Translate(_transition, Space.World);
-                transform.eulerAngles += _rotation;
+                transform.Translate(_translationStep, Space.World);
+                transform.eulerAngles += _rotationStep;
                 _step++;
                 if (_step == StepsCount)
                 {
                     if (_transitionToFP)
                     {
                         State = CameraState.FirstPerson;
-                        _enterRotation = transform.eulerAngles;
+                        _rotationOnFirstPersonStateEntrance = transform.eulerAngles;
                         GetComponent<MouseLook>().enabled = true;
                         transform.parent = _attachedGameObject.transform;
                     }
@@ -60,17 +61,18 @@ namespace Assets.Scripts
             }
         }
 
-        public void SwitchToFP(GameObject gameObj, Transform to)
+        public void SwitchToFP(GameObject gameObj)
         {
             if (State != CameraState.Strategic)
             {
                 return;
             }
+            _attachedGameObject = gameObj;
+            Transform to = gameObj.transform;
             _step = 0;
             State = CameraState.Transition;
-            _rotation = (to.eulerAngles - transform.eulerAngles) / StepsCount;
-            _transition = (to.position - transform.position + Vector3.up) / StepsCount;
-            _attachedGameObject = gameObj;
+            _rotationStep = (to.eulerAngles - transform.eulerAngles) / StepsCount;
+            _translationStep = (to.position - transform.position + Vector3.up) / StepsCount;
             _transitionToFP = true;
         }
 
@@ -82,11 +84,11 @@ namespace Assets.Scripts
             }
             GetComponent<MouseLook>().enabled = false;
             transform.parent = null;
-            transform.eulerAngles = _enterRotation;
+            transform.eulerAngles = _rotationOnFirstPersonStateEntrance;
             _step = 0;
             State = CameraState.Transition;
-            _transition = -_transition;
-            _rotation = -_rotation;
+            _rotationStep = -_rotationStep;
+            _translationStep = -_translationStep;
             _transitionToFP = false;
         }
     }

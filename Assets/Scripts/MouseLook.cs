@@ -4,14 +4,6 @@ namespace Assets.Scripts
 {
     public class MouseLook : MonoBehaviour
     {
-        private float _rotationX;
-        private float _rotationY;
-
-        public float MinAngle = -5;
-        public float MaxAngle = 5;
-        public float SensitivityHor = 3.0f;
-        public float SensitivityVer = 3.0f;
-
         public enum RotationType
         {
             Horizontal = 0,
@@ -19,25 +11,32 @@ namespace Assets.Scripts
             Both = 2
         }
 
-        public RotationType RotationDir;
+        [SerializeField] private RotationType _rotationDir;
+        [SerializeField] private float _minAngle;
+        [SerializeField] private float _maxAngle;
+        [SerializeField] private float _sensitivityHor;
+        [SerializeField] private float _sensitivityVer;
+
+        private float _rotationX;
+        private float _rotationY;
 
         private void Update()
         {
-            switch (RotationDir)
+            switch (_rotationDir)
             {
                 case RotationType.Horizontal:
-                    _rotationY += Input.GetAxis(Constants.Axes.MouseX) * SensitivityHor;
+                    _rotationY += Input.GetAxis(Constants.Axes.MouseX) * _sensitivityHor;
                     break;
 
                 case RotationType.Vertical:
-                    _rotationX -= Input.GetAxis(Constants.Axes.MouseY) * SensitivityVer;
-                    _rotationX = Mathf.Clamp(_rotationX, MinAngle, MaxAngle);
+                    _rotationX -= Input.GetAxis(Constants.Axes.MouseY) * _sensitivityVer;
+                    _rotationX = Mathf.Clamp(_rotationX, _minAngle, _maxAngle);
                     break;
 
                 case RotationType.Both:
-                    _rotationY += Input.GetAxis(Constants.Axes.MouseX) * SensitivityHor;
-                    _rotationX -= Input.GetAxis(Constants.Axes.MouseY) * SensitivityVer;
-                    _rotationX = Mathf.Clamp(_rotationX, MinAngle, MaxAngle);
+                    _rotationY += Input.GetAxis(Constants.Axes.MouseX) * _sensitivityHor;
+                    _rotationX -= Input.GetAxis(Constants.Axes.MouseY) * _sensitivityVer;
+                    _rotationX = Mathf.Clamp(_rotationX, _minAngle, _maxAngle);
                     break;
             }
             transform.eulerAngles = new Vector3(_rotationX, _rotationY, 0);

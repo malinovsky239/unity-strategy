@@ -10,6 +10,7 @@ namespace Assets.Scripts
         private const float FormationDistance = 3;
         private const int BinarySearchIterations = 30;
         private const float DistanceUpperBound = 1e9f;
+        private const int NoPair = -1;
 
         private List<GameObject> _currentSelection;
         public List<GameObject> CurrentSelection
@@ -24,31 +25,31 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            Messenger<int>.AddListener(Constants.Messages.FormationChanged, ChangeFormation);
+            Messenger<Constants.Formations>.AddListener(Constants.Messages.FormationChanged, ChangeFormation);
         }
 
         private void OnDestroy()
         {
-            Messenger<int>.RemoveListener(Constants.Messages.FormationChanged, ChangeFormation);
+            Messenger<Constants.Formations>.RemoveListener(Constants.Messages.FormationChanged, ChangeFormation);
         }
 
-        private void ChangeFormation(int formationId)
+        private void ChangeFormation(Constants.Formations formation)
         {
             float minMaxDist = float.PositiveInfinity;
             for (var leaderIndex = 0; leaderIndex < CurrentSelection.Count; leaderIndex++)
             {
                 List<float> targetForwardCoeffs = new List<float>();
                 List<float> targetRightCoeffs = new List<float>();
-                for (var i = 1; i < _currentSelection.Count; i++)
+                for (var i = 1; i < CurrentSelection.Count; i++)
                 {
                     float forwardCoeff = 0, rightCoeff = 0;
-                    switch (formationId)
+                    switch (formation)
                     {
-                        case 1:
+                        case Constants.Formations.Column:
                             forwardCoeff = -FormationDistance * i;
                             break;
 
-                        case 2:
+                        case Constants.Formations.Row:
                             rightCoeff = FormationDistance * (i + 1) / 2;
                             if (i % 2 == 0)
                             {
@@ -56,7 +57,7 @@ namespace Assets.Scripts
                             }
                             break;
 
-                        case 3:
+                        case Constants.Formations.Wedge:
                             rightCoeff = FormationDistance * (i + 1) / 2;
                             if (i % 2 == 0)
                             {
@@ -70,11 +71,12 @@ namespace Assets.Scripts
                 }
                 FindMinMaxMatching(leaderIndex, targetForwardCoeffs, targetRightCoeffs, ref minMaxDist);
 
+                /*
                 // Alternative approach: too slow for large number of units (due to exponential complexity) 
                 // but fine for just five of them
 
-                // TryAllPermutations(leaderIndex, targetForwardCoeffs, targetRightCoeffs, ref minMaxDist);
-
+                TryAllPermutations(leaderIndex, targetForwardCoeffs, targetRightCoeffs, ref minMaxDist);
+                */
             }
         }
 
@@ -104,7 +106,7 @@ namespace Assets.Scripts
             {
                 float mid = (l + r) / 2;
                 List<int> leftPair = KuhnsAlgorithm(units, targetPositions, mid);
-                if (leftPair.TrueForAll(a => a != -1))
+                if (leftPair.TrueForAll(pair => pair != NoPair))
                 {
                     r = mid;
                 }
@@ -122,17 +124,17 @@ namespace Assets.Scripts
                 for (int i = 0; i < unitForTarget.Count; i++)
                 {
                     GoblinMovement unit = units[unitForTarget[i]].GetComponent<GoblinMovement>();
-                    unit.Leader = leader;
+                    unit.GroupLeader = leader;
                     unit.ForwardCoeff = targetForwardCoeffs[i];
                     unit.RightCoeff = targetRightCoeffs[i];
                 }
-                CurrentSelection[leaderIndex].GetComponent<GoblinMovement>().Leader = null;
+                CurrentSelection[leaderIndex].GetComponent<GoblinMovement>().GroupLeader = null;
             }
         }
 
         private List<int> KuhnsAlgorithm(List<GameObject> units, List<Vector3> targetPositions, float mid)
         {
-            List<int> leftPair = Enumerable.Repeat(-1, units.Count).ToList();
+            List<int> leftPair = Enumerable.Repeat(NoPair, units.Count).ToList();
             for (int j = 0; j < units.Count; j++)
             {
                 List<bool> used = new List<bool>(new bool[units.Count]);
@@ -156,7 +158,7 @@ namespace Assets.Scripts
             {
                 if ((unitPosition - targetPositions[to]).sqrMagnitude < sqrAllowedDistance)
                 {
-                    if (leftPair[to] == -1 || dfs(leftPair[to], leftPair, used, units, targetPositions, sqrAllowedDistance))
+                    if (leftPair[to] == NoPair || dfs(leftPair[to], leftPair, used, units, targetPositions, sqrAllowedDistance))
                     {
                         leftPair[to] = node;
                         return true;
@@ -182,7 +184,7 @@ namespace Assets.Scripts
                 }
             }
 
-            bool exists;
+            bool nextPermutationExists;
             do
             {
                 float maxDist = 0;
@@ -199,19 +201,20 @@ namespace Assets.Scripts
                     for (var unitIndex = 0; unitIndex < units.Count; unitIndex++)
                     {
                         int pIndex = indices[unitIndex];
-                        units[pIndex].GetComponent<GoblinMovement>().Leader = leader;
-                        units[pIndex].GetComponent<GoblinMovement>().ForwardCoeff = targetForwardCoeffs[unitIndex];
-                        units[pIndex].GetComponent<GoblinMovement>().RightCoeff = targetRightCoeffs[unitIndex];
+                        GoblinMovement unit = units[pIndex].GetComponent<GoblinMovement>();
+                        unit.GroupLeader = leader;
+                        unit.ForwardCoeff = targetForwardCoeffs[unitIndex];
+                        unit.RightCoeff = targetRightCoeffs[unitIndex];
                     }
-                    CurrentSelection[leaderIndex].GetComponent<GoblinMovement>().Leader = null;
+                    CurrentSelection[leaderIndex].GetComponent<GoblinMovement>().GroupLeader = null;
                 }
 
-                exists = false;
+                nextPermutationExists = false;
                 for (var i = indices.Count - 2; i >= 0; i--)
                 {
                     if (indices[i] < indices[i + 1])
                     {
-                        exists = true;
+                        nextPermutationExists = true;
                         int indexToSwap = i + 1;
                         for (var j = i + 2; j < units.Count; j++)
                         {
@@ -226,12 +229,12 @@ namespace Assets.Scripts
                         indices.Reverse(i + 1, indices.Count - i - 1);
                     }
                 }
-            } while (exists);
+            } while (nextPermutationExists);
         }
 
         public void Clear()
         {
-            foreach (GameObject gameObj in _currentSelection)
+            foreach (GameObject gameObj in CurrentSelection)
             {
                 SelectableUnit target = gameObj.GetComponent<SelectableUnit>();
                 if (target)
@@ -239,16 +242,16 @@ namespace Assets.Scripts
                     target.RemoveSelection();
                 }
             }
-            _currentSelection.Clear();
-            Messenger<int>.Broadcast(Constants.Messages.CntChanged, _currentSelection.Count);
+            CurrentSelection.Clear();
+            Messenger<int>.Broadcast(Constants.Messages.CntChanged, CurrentSelection.Count);
         }
 
         public void Add(GameObject gameObj)
         {
             SelectableUnit target = gameObj.GetComponent<SelectableUnit>();
             target.Select();
-            _currentSelection.Add(gameObj);
-            Messenger<int>.Broadcast(Constants.Messages.CntChanged, _currentSelection.Count);
+            CurrentSelection.Add(gameObj);
+            Messenger<int>.Broadcast(Constants.Messages.CntChanged, CurrentSelection.Count);
         }
 
         public void Remove(GameObject gameObj)
@@ -259,18 +262,18 @@ namespace Assets.Scripts
                 return;
             }
 
-            gameObj.GetComponent<GoblinMovement>().Leader = null;
-            if (_currentSelection.Contains(gameObj))
+            gameObj.GetComponent<GoblinMovement>().GroupLeader = null;
+            if (CurrentSelection.Contains(gameObj))
             {
                 target.RemoveSelection();
-                _currentSelection.Remove(gameObj);
+                CurrentSelection.Remove(gameObj);
             }
-            Messenger<int>.Broadcast(Constants.Messages.CntChanged, _currentSelection.Count);
+            Messenger<int>.Broadcast(Constants.Messages.CntChanged, CurrentSelection.Count);
         }
 
         public void Inverse(GameObject gameObj)
         {
-            if (_currentSelection.Contains(gameObj))
+            if (CurrentSelection.Contains(gameObj))
             {
                 Remove(gameObj);
             }

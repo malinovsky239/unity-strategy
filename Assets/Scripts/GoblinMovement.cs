@@ -5,20 +5,21 @@ namespace Assets.Scripts
 {
     public class GoblinMovement : MonoBehaviour
     {
-        public GameObject Leader;
+        public GameObject GroupLeader { get; set; }
+        public float ForwardCoeff { get; set; }
+        public float RightCoeff { get; set; }
+
         private CharacterController _characterController;
         private Animator _animator;
         private NavMeshAgent _agent;
         private Attack _attack;
         private FieldOfView _fieldOfView;
-        private bool _alive = true;
-        public float Speed = 0.0f;
-        private float _attackingDistance = 3f;
+        private HealthPointsBar _hp;
+
+        private const float AttackingDistance = 3f;
 
         private Vector3 _targetCoordinate;
         private Vector3 _lastFramePosition;
-        public float ForwardCoeff, RightCoeff;
-        private GameObject _target;
 
         private void Start()
         {
@@ -27,47 +28,41 @@ namespace Assets.Scripts
             _agent = GetComponent<NavMeshAgent>();
             _attack = GetComponent<Attack>();
             _fieldOfView = GetComponent<FieldOfView>();
+            _hp = GetComponent<HealthPointsBar>();
         }
 
         public void MoveTo(Vector3 destination)
         {
-            _animator.SetFloat(Constants.AnimatorParameters.Speed, 10);
-            if (Leader == null)
+            _animator.SetFloat(Constants.AnimatorParameters.SpeedParam, Constants.Speed.Run);
+            if (GroupLeader == null)
             {
                 _targetCoordinate = destination;
                 _agent.destination = destination;
             }
             else
             {
-                _targetCoordinate = destination + Leader.transform.forward * ForwardCoeff + Leader.transform.right * RightCoeff;
+                _targetCoordinate = destination + GroupLeader.transform.forward * ForwardCoeff + GroupLeader.transform.right * RightCoeff;
             }
         }
 
-        private const float Eps = 1.0f;
-
         private void Update()
         {
-            float deltaHeight = _characterController.isGrounded ? 0 : -1;
-            _characterController.Move(new Vector3(0, deltaHeight * Time.deltaTime, 0));
+            Vector3 deltaHeight = _characterController.isGrounded ? Vector3.zero : Vector3.down;
+            _characterController.Move(deltaHeight * Time.deltaTime);
 
-            if (!_alive)
+            if (_hp.HealthPoints <= 0)
             {
                 return;
             }
-            if (GetComponent<HealthPointsBar>().HealthPoints <= 0)
-            {
-                _alive = false;
-                return;
-            }
 
-            if (Leader != null)
+            if (GroupLeader != null)
             {
-                _agent.destination = Leader.transform.position + Leader.transform.forward * ForwardCoeff + Leader.transform.right * RightCoeff;
+                _agent.destination = GroupLeader.transform.position + GroupLeader.transform.forward * ForwardCoeff + GroupLeader.transform.right * RightCoeff;
 
                 // avoid stupid regrouping when the leader turns by 180 degrees instantly
                 Vector3 curPos = transform.position;
                 Vector3 curDest = _agent.destination;
-                Vector3 newDest = Leader.transform.position + Leader.transform.forward * ForwardCoeff - Leader.transform.right * RightCoeff;
+                Vector3 newDest = GroupLeader.transform.position + GroupLeader.transform.forward * ForwardCoeff - GroupLeader.transform.right * RightCoeff;
                 if ((newDest - curPos).sqrMagnitude < (curDest - curPos).sqrMagnitude && (curDest - curPos).sqrMagnitude > 1)
                 {
                     RightCoeff = -RightCoeff;
@@ -75,36 +70,47 @@ namespace Assets.Scripts
                 }
             }
 
-            if (Utils.HeightIgnoringDistance(_targetCoordinate, transform.position) > Eps && !(Utils.HeightIgnoringDistance(_lastFramePosition, transform.position) < 0.001f))
+            if (Utils.HeightIgnoringDistance(_targetCoordinate, transform.position) > Constants.LargeEps && !(Utils.HeightIgnoringDistance(_lastFramePosition, transform.position) < Constants.SmallEps))
             {
-                _animator.SetFloat(Constants.AnimatorParameters.Speed, 10);
+                _animator.SetFloat(Constants.AnimatorParameters.SpeedParam, Constants.Speed.Run);
             }
             else
             {
-                _animator.SetFloat(Constants.AnimatorParameters.Speed, 0);
+                _animator.SetFloat(Constants.AnimatorParameters.SpeedParam, Constants.Speed.Stand);
                 _animator.SetBool(Constants.AnimatorParameters.EnemyWithinAttackingRange, false);
-                foreach (GameObject gameObj in GameObject.FindGameObjectsWithTag(Constants.Tags.Enemy))
+                GameObject closestEnemyInTheFieldOfView = null;
+                bool enemyWithinAttackingRange = false;
+                foreach (GameObject enemy in GameObject.FindGameObjectsWithTag(Constants.Tags.Enemy))
                 {
-                    if (gameObj.GetComponent<HealthPointsBar>().HealthPoints > 0)
+                    if (enemy.GetComponent<HealthPointsBar>().HealthPoints > 0)
                     {
-                        if (Utils.SqrDistance(this.gameObject, gameObj) < _attackingDistance)
+                        if (Utils.SqrDistance(gameObject, enemy) < AttackingDistance)
                         {
-                            transform.rotation = Quaternion.LookRotation(gameObj.transform.position - transform.position);
+                            transform.rotation = Quaternion.LookRotation(enemy.transform.position - transform.position);
                             _animator.SetBool(Constants.AnimatorParameters.EnemyWithinAttackingRange, true);
                             if (!_attack.IsAttacking)
                             {
                                 _attack.IsAttacking = true;
-                                StartCoroutine(_attack.BringDamage(gameObj));
+                                enemyWithinAttackingRange = true;
+                                StartCoroutine(_attack.BringDamage(enemy));
                             }
                             break;
                         }
-                        else if (_fieldOfView.IsInField(gameObj.transform.position))
+                        if (_fieldOfView.IsInField(enemy.transform.position))
                         {
-                            _agent.SetDestination(gameObj.transform.position);
-                            _animator.SetFloat(Constants.AnimatorParameters.Speed, 10);
-                            Leader = null; // TODO: break formation only temporarily
+                            if (closestEnemyInTheFieldOfView == null ||
+                                Utils.SqrDistance(gameObject, enemy) < Utils.SqrDistance(gameObject, closestEnemyInTheFieldOfView))
+                            {
+                                closestEnemyInTheFieldOfView = enemy;
+                            }
                         }
                     }
+                }
+                if (!enemyWithinAttackingRange && closestEnemyInTheFieldOfView != null)
+                {
+                    _agent.SetDestination(closestEnemyInTheFieldOfView.transform.position);
+                    _animator.SetFloat(Constants.AnimatorParameters.SpeedParam, Constants.Speed.Run);
+                    GroupLeader = null; // TODO: break formation only temporarily
                 }
             }
 

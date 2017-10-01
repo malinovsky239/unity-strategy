@@ -4,17 +4,18 @@ namespace Assets.Scripts
 {
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class FieldOfView : MonoBehaviour
-    { 
-        private int steps = 10;
+    {
+        private const int Steps = 10;
+        private const float HeightAboveGround = 0.5f;
 
-        [SerializeField] public float _barColorRed;
-        [SerializeField] public float _barColorGreen;
-        [SerializeField] public float _barColorBlue;
+        [SerializeField] private float _barColorRed;
+        [SerializeField] private float _barColorGreen;
+        [SerializeField] private float _barColorBlue;
 
-        [SerializeField] public int _maxDistance = 15;
-        [SerializeField] public float _fieldAngle;
-        private Mesh _mesh;    
-    
+        [SerializeField] private int _maxDistance;
+        [SerializeField] private float _fieldAngle;
+        private Mesh _mesh;
+
         private void Awake()
         {
             // temporary fix for the issue with displaying multiple meshes
@@ -23,22 +24,22 @@ namespace Assets.Scripts
                 Generate();
             }
         }
-    
+
         private void Generate()
         {
-            GetComponent<MeshFilter>().mesh = _mesh = new Mesh();            
-        
-            Vector3[] vertices = new Vector3[steps + 2];                
-            vertices[0] = new Vector3(0, 0, 0);
+            GetComponent<MeshFilter>().mesh = _mesh = new Mesh();
+
+            Vector3[] vertices = new Vector3[Steps + 2];
+            vertices[0] = Vector3.zero;
             int cnt = 1;
-            for (float angle = - _fieldAngle / 2; angle <= _fieldAngle / 2 + Mathf.Epsilon; angle += _fieldAngle / steps)
+            for (float angle = -_fieldAngle / 2; angle <= _fieldAngle / 2 + Mathf.Epsilon; angle += _fieldAngle / Steps)
             {
                 float x = Mathf.Sin(angle * Mathf.Deg2Rad) * _maxDistance;
                 float y = Mathf.Cos(angle * Mathf.Deg2Rad) * _maxDistance;
-                vertices[cnt++] = new Vector3(x, 0.5f, y);
-            }        
+                vertices[cnt++] = new Vector3(x, HeightAboveGround, y);
+            }
             _mesh.vertices = vertices;
-              
+
             Color barColor = new Color(_barColorRed, _barColorGreen, _barColorBlue);
             Color[] colors = new Color[vertices.Length];
             for (int i = 0; i < vertices.Length; i++)
@@ -46,16 +47,16 @@ namespace Assets.Scripts
                 colors[i] = barColor;
             }
             _mesh.colors = colors;
-        
-            int[] triangles = new int[(steps + 1) * 3];
-            for (int i = 0; i < steps; i++)
+
+            int[] triangles = new int[(Steps + 1) * 3];
+            for (int i = 0; i < Steps; i++)
             {
                 triangles[i * 3] = 0;
                 triangles[i * 3 + 1] = i + 2;
                 triangles[i * 3 + 2] = i + 1;
-            }        
+            }
             _mesh.triangles = triangles;
-        
+
             _mesh.RecalculateNormals();
         }
 

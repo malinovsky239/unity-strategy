@@ -4,17 +4,6 @@ namespace Assets.Scripts
 {
     public class SelectGameObject : MonoBehaviour
     {
-        private Camera _camera;
-        private CameraMovement _cameraMovement;
-        private SelectionController _selectionController;
-        private GameObject _destinationFlag;
-        [SerializeField] private GameObject _flag;
-        private bool _isSelecting;
-        private Vector3 _selectionRectCorner;
-
-        private const float ScaleSensitivity = 10f, RotateSensitivity = 50f;
-        private const float MinFieldOfView = 15, MaxFieldOfView = 60;
-
         private enum Mode
         {
             Normal,
@@ -22,6 +11,20 @@ namespace Assets.Scripts
         }
 
         private Mode _mode;
+
+        private const float ScaleSensitivity = 10f, RotateSensitivity = 50f;
+        private const float MinFieldOfView = 15, MaxFieldOfView = 60;
+
+        private Camera _camera;
+        private CameraMovement _cameraMovement;
+
+        private SelectionController _selectionController;
+        private bool _isSelecting;
+        private Vector3 _selectionRectCorner;
+        private const float SelectionRectBorderWidth = 2;
+
+        private GameObject _destinationFlag;
+        [SerializeField] private GameObject _flag;
 
         private void Start()
         {
@@ -40,10 +43,10 @@ namespace Assets.Scripts
                 _cameraMovement.SwitchToStrategic();
             }
 
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(Constants.Mouse.LeftButton))
             {
-                RaycastHit hit;
                 Vector3 clickPoint = Input.mousePosition;
+                RaycastHit hit;
                 if (Physics.Raycast(_camera.ScreenPointToRay(clickPoint), out hit))
                 {
                     GameObject hitGameObject = hit.transform.gameObject;
@@ -54,7 +57,7 @@ namespace Assets.Scripts
 
                         if (isAltPressed)
                         {
-                            _cameraMovement.SwitchToFP(hitGameObject, target.transform);
+                            _cameraMovement.SwitchToFP(hitGameObject);
                         }
                         else
                         {
@@ -69,7 +72,7 @@ namespace Assets.Scripts
                 }
             }
 
-            if (Input.GetMouseButtonUp(0))
+            if (Input.GetMouseButtonUp(Constants.Mouse.LeftButton))
             {
                 if (_isSelecting)
                 {
@@ -91,7 +94,7 @@ namespace Assets.Scripts
                 _mode = Mode.Normal;
             }
 
-            if (Input.GetMouseButton(1))
+            if (Input.GetMouseButton(Constants.Mouse.RightButton))
             {
                 if (_mode == Mode.CameraRotation)
                 {
@@ -99,7 +102,7 @@ namespace Assets.Scripts
                 }
             }
 
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButtonDown(Constants.Mouse.RightButton))
             {
                 if (_mode == Mode.Normal && _selectionController.CurrentSelection.Count > 0)
                 {
@@ -119,8 +122,7 @@ namespace Assets.Scripts
         private void RotateCamera()
         {
             Vector3 rotationAxisBase = _camera.ScreenToWorldPoint(new Vector2(Screen.width / 2f, Screen.height / 2f));
-            rotationAxisBase.y = 0;
-            transform.RotateAround(rotationAxisBase, Vector3.up, Input.GetAxis(Constants.Axes.MouseX) * Time.deltaTime * RotateSensitivity);
+            transform.RotateAround(Utils.IgnoreHeight(rotationAxisBase), Vector3.up, Input.GetAxis(Constants.Axes.MouseX) * Time.deltaTime * RotateSensitivity);
         }
 
         private void SelectUnit(GameObject hitGameObject)
@@ -148,21 +150,18 @@ namespace Assets.Scripts
             Vector3 cornerWorldInit = new Vector3(), cornerWorldOpposite = new Vector3();
             if (Physics.Raycast(_camera.ScreenPointToRay(_selectionRectCorner), out hit))
             {
-                cornerWorldInit = hit.point;
-                cornerWorldInit.y = 0;
+                cornerWorldInit = Utils.IgnoreHeight(hit.point);
             }
             if (Physics.Raycast(_camera.ScreenPointToRay(selectionRectOppositeCorner), out hit))
             {
-                cornerWorldOpposite = hit.point;
-                cornerWorldOpposite.y = 0;
+                cornerWorldOpposite = Utils.IgnoreHeight(hit.point);
             }
             Bounds selectionRectBounds = new Bounds();
             selectionRectBounds.SetMinMax(Vector3.Min(cornerWorldInit, cornerWorldOpposite),
-                Vector3.Max(cornerWorldInit, cornerWorldOpposite));
+                                          Vector3.Max(cornerWorldInit, cornerWorldOpposite));
             foreach (GameObject gameObj in GameController.WorldUnits)
             {
-                Vector3 position = gameObj.transform.position;
-                position.y = 0;
+                Vector3 position = Utils.IgnoreHeight(gameObj.transform.position);
                 if (selectionRectBounds.Contains(position))
                 {
                     _selectionController.Add(gameObj);
@@ -177,12 +176,12 @@ namespace Assets.Scripts
                 Destroy(_destinationFlag.gameObject);
             }
 
-            RaycastHit hit;
             Vector3 clickPoint = Input.mousePosition;
+            RaycastHit hit;
             if (Physics.Raycast(_camera.ScreenPointToRay(clickPoint), out hit))
             {
                 Vector3 destination = hit.point;
-                _destinationFlag = Instantiate(_flag, destination, Quaternion.identity) as GameObject;
+                _destinationFlag = Instantiate(_flag, destination, Quaternion.identity);
                 foreach (GameObject selectedGameObject in _selectionController.CurrentSelection)
                 {
                     GoblinMovement goblinMovementControl = selectedGameObject.GetComponent<GoblinMovement>();
@@ -199,8 +198,8 @@ namespace Assets.Scripts
             if (_isSelecting)
             {
                 var rect = Utils.GetScreenRect(_selectionRectCorner, Input.mousePosition);
-                Utils.DrawScreenRect(rect, new Color(0.8f, 0.8f, 0.95f, 0.25f));
-                Utils.DrawScreenRectBorder(rect, 2, new Color(0.8f, 0.8f, 0.95f));
+                Utils.DrawScreenRect(rect, Constants.Colors.SelectionRect);
+                Utils.DrawScreenRectBorder(rect, SelectionRectBorderWidth, Constants.Colors.SelectionRectBorder);
             }
         }
     }

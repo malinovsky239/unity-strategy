@@ -4,7 +4,7 @@ namespace Assets.Scripts
 {
     public static class Utils
     {
-        static Texture2D _whiteTexture;
+        private static Texture2D _whiteTexture;
         public static Texture2D WhiteTexture
         {
             get
@@ -60,6 +60,11 @@ namespace Assets.Scripts
         public static float HeightIgnoringDistance(Vector3 v1, Vector3 v2)
         {
             return Sqr(v1.x - v2.x) + Sqr(v1.z - v2.z);
+        }
+
+        public static Vector3 IgnoreHeight(Vector3 v)
+        {
+            return new Vector3(v.x, 0, v.z);
         }
     }
 }

@@ -5,13 +5,13 @@ namespace Assets.Scripts
 {
     public class Attack : MonoBehaviour
     {
-        public bool IsAttacking;
-        [SerializeField] private int Damage = 10;
+        public bool IsAttacking { get; set; }
+        [SerializeField] private int _damage;
 
-        public IEnumerator BringDamage(GameObject prey, float waitingTime = 1f)
+        public IEnumerator BringDamage(GameObject prey, float pauseBeforeAttack = Constants.Intervals.DefaultPauseBeforeAttack)
         {
-            yield return new WaitForSeconds(waitingTime);
-            prey.GetComponent<HealthPointsBar>().HealthPoints -= Damage;
+            yield return new WaitForSeconds(pauseBeforeAttack);
+            prey.GetComponent<HealthPointsBar>().HealthPoints -= _damage;
             IsAttacking = false;
         }
     }

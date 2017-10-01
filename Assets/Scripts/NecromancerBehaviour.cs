@@ -6,16 +6,19 @@ namespace Assets.Scripts
 {
     public class NecromancerBehaviour : MonoBehaviour
     {
-        private const int MinDist = 3;
-        private const int MaxDist = 7;
-        private const int SafeDist = 5;
+        private const int PathElementMinLength = 3;
+        private const int PathElementMaxLength = 7;
+        private const int SafeWalkAwayDist = 5;
+        private const float FireballTrajectoryHeight = 0.5f;
+        private const float MaxRandomPointDeviation = 1.0f;
+
         private NavMeshAgent _agent;
         private Animator _animator;
         private FieldOfView _fieldOfView;
         private HealthPointsBar _hp;
+
         [SerializeField] private GameObject _fireballPrefab;
-        private bool _fireballSingleton = false;
-        private bool _alive = true;
+        private bool _canCastFireball;
 
         private void Start()
         {
@@ -23,18 +26,14 @@ namespace Assets.Scripts
             _fieldOfView = GetComponentInChildren<FieldOfView>();
             _hp = GetComponent<HealthPointsBar>();
             _animator = GetComponent<Animator>();
-            _animator.SetInteger(Constants.AnimatorParameters.Speed, 2);
+            _animator.SetInteger(Constants.AnimatorParameters.SpeedParam, Constants.Speed.Walk);
+            _canCastFireball = true;
         }
 
         private void Update()
         {
-            if (!_alive)
-            {
-                return;
-            }
             if (_hp.HealthPoints <= 0)
             {
-                _alive = false;
                 return;
             }
 
@@ -44,7 +43,7 @@ namespace Assets.Scripts
             {
                 if (_fieldOfView.IsInField(target.transform.position))
                 {
-                    if (closestTarget == null || Utils.SqrDistance(this.gameObject, target) < Utils.SqrDistance(this.gameObject, closestTarget))
+                    if (closestTarget == null || Utils.SqrDistance(gameObject, target) < Utils.SqrDistance(gameObject, closestTarget))
                     {
                         closestTarget = target;
                     }
@@ -53,9 +52,9 @@ namespace Assets.Scripts
 
             if (closestTarget)
             {
-                if (!_fireballSingleton)
+                if (_canCastFireball)
                 {
-                    _fireballSingleton = true;
+                    _canCastFireball = false;
                     CastFireball(closestTarget);
                 }
                 else
@@ -73,21 +72,20 @@ namespace Assets.Scripts
                 // but trying not to go too far away from being surrounded by friendly units
 
                 int cnt = 0;
-                float sumX = 0, sumY = 0;
+                Vector3 sumPos = Vector3.zero;
                 foreach (GameObject unit in GameObject.FindGameObjectsWithTag(Constants.Tags.Enemy))
                 {
-                    if (unit != this.gameObject)
+                    if (unit != gameObject)
                     {
                         cnt++;
-                        sumX += unit.transform.position.x;
-                        sumY += unit.transform.position.y;
+                        sumPos += unit.transform.position;
                     }
                 }
-                float avgX = sumX / cnt, avgY = sumY / cnt;
-                Vector3 center = new Vector3(avgX, 0, avgY);
+
+                Vector3 center = cnt > 0 ? sumPos / cnt : transform.position;
                 center.y = Terrain.activeTerrain.SampleHeight(center);
 
-                if ((transform.position - center).magnitude > SafeDist)
+                if ((transform.position - center).magnitude > SafeWalkAwayDist)
                 {
                     _agent.destination = center;
                 }
@@ -100,7 +98,7 @@ namespace Assets.Scripts
 
         private void CastFireball(GameObject target)
         {
-            _animator.SetInteger(Constants.AnimatorParameters.Speed, 0);
+            _animator.SetInteger(Constants.AnimatorParameters.SpeedParam, Constants.Speed.Stand);
             _agent.isStopped = true;
             _animator.SetBool(Constants.AnimatorParameters.CastingMagic, true);
             StartCoroutine(CastingSpell(target));
@@ -108,15 +106,15 @@ namespace Assets.Scripts
 
         private IEnumerator CastingSpell(GameObject target)
         {
-            yield return new WaitForSeconds(3);
+            yield return new WaitForSeconds(Constants.Intervals.FireballCastingPreparations);
 
-            GameObject fireball = Instantiate(_fireballPrefab) as GameObject;
-            fireball.GetComponent<Fireball>().Creator = this.gameObject;
-            fireball.transform.position = transform.position + Vector3.up * 0.5f;
+            GameObject fireball = Instantiate(_fireballPrefab);
+            fireball.GetComponent<Fireball>().Creator = gameObject;
+            fireball.transform.position = transform.position + Vector3.up * FireballTrajectoryHeight;
             fireball.transform.LookAt(target.transform.position);
-            fireball.transform.forward = new Vector3(fireball.transform.forward.x, 0, fireball.transform.forward.z);
+            fireball.transform.forward = Utils.IgnoreHeight(fireball.transform.forward);
 
-            _animator.SetInteger(Constants.AnimatorParameters.Speed, 2);
+            _animator.SetInteger(Constants.AnimatorParameters.SpeedParam, Constants.Speed.Walk);
             _animator.SetBool(Constants.AnimatorParameters.CastingMagic, false);
             _agent.isStopped = false;
 
@@ -125,22 +123,22 @@ namespace Assets.Scripts
 
         private IEnumerator UnblockFireball()
         {
-            yield return new WaitForSeconds(5);
-            _fireballSingleton = false;
+            yield return new WaitForSeconds(Constants.Intervals.FireballRecharging);
+            _canCastFireball = true;
         }
 
-        Vector3 MoveInRandomDirection(Vector3 start)
+        private Vector3 MoveInRandomDirection(Vector3 start)
         {
             while (true)
             {
-                float range = Random.Range(MinDist, MaxDist);
+                float range = Random.Range(PathElementMinLength, PathElementMaxLength);
                 Vector2 movementAttempt = Random.insideUnitCircle * range;
-                Vector3 destinationPoint = start + new Vector3(movementAttempt.x, 0, movementAttempt.y);
+                Vector3 destinationPoint = start + Utils.IgnoreHeight(movementAttempt);
                 destinationPoint.y = Terrain.activeTerrain.SampleHeight(destinationPoint);
-                NavMeshHit hit;
-                if (NavMesh.SamplePosition(destinationPoint, out hit, 1.0f, NavMesh.AllAreas))
+                NavMeshHit validDestination;
+                if (NavMesh.SamplePosition(destinationPoint, out validDestination, MaxRandomPointDeviation, NavMesh.AllAreas))
                 {
-                    return destinationPoint;
+                    return validDestination.position;
                 }
             }
         }
