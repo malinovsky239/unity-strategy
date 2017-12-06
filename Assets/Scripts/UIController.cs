@@ -6,9 +6,7 @@ namespace Assets.Scripts
     public class UIController : MonoBehaviour
     {
         [SerializeField] private Text goblinCount;
-        [SerializeField] private GameObject goblinAvatar;
-        [SerializeField] private GameObject goblinCountDisplay;
-        [SerializeField] private GameObject formationsPanel;
+        [SerializeField] private Canvas uiCanvas;
         [SerializeField] private GameObject columnFormation;
         [SerializeField] private GameObject rowFormation;
         [SerializeField] private GameObject wedgeFormation;
@@ -33,9 +31,7 @@ namespace Assets.Scripts
         {
             goblinCount.text = newCount.ToString();
             bool status = newCount != 0;
-            goblinAvatar.SetActive(status);
-            goblinCountDisplay.SetActive(status);
-            formationsPanel.SetActive(status);
+            uiCanvas.gameObject.SetActive(status);
             _uiActive = status;
         }
 
