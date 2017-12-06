@@ -27,7 +27,7 @@ namespace Assets.Scripts
             _animator = GetComponent<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _attack = GetComponent<Attack>();
-            _fieldOfView = GetComponent<FieldOfView>();
+            _fieldOfView = GetComponentInChildren<FieldOfView>();
             _hp = GetComponent<HealthPointsBar>();
         }
 

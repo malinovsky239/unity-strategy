@@ -18,17 +18,13 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            // temporary fix for the issue with displaying multiple meshes
-            if (GetComponentInParent<NecromancerBehaviour>())
-            {
-                Generate();
-            }
+            Generate();
         }
 
         private void Generate()
         {
+            GetComponent<MeshRenderer>().materials = new Material[1] { new Material(Shader.Find("Particles/Additive")) };
             GetComponent<MeshFilter>().mesh = _mesh = new Mesh();
-
             Vector3[] vertices = new Vector3[Steps + 2];
             vertices[0] = Vector3.zero;
             int cnt = 1;
@@ -56,7 +52,7 @@ namespace Assets.Scripts
                 triangles[i * 3 + 2] = i + 1;
             }
             _mesh.triangles = triangles;
-
+            _mesh.RecalculateBounds();
             _mesh.RecalculateNormals();
         }
 
